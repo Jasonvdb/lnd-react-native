@@ -1,0 +1,7 @@
+node_modules/
+.idea/
+ios/Pods/
+android/.gradle/
+android/app/build/
+android/Lndmobile/build/
+android/java_pid*
