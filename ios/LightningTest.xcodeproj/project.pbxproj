@@ -18,6 +18,10 @@
 		30E64056268C435479026983 /* libPods-LightningTest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B40071C1373E3A48E28711F /* libPods-LightningTest.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		9304E7EEDFCF0100BF08F968 /* libPods-LightningTest-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C4265FE22F74144D9AF96B1 /* libPods-LightningTest-tvOS.a */; };
+		960F2B9A2569654700BF0249 /* LndReactModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 960F2B992569654700BF0249 /* LndReactModule.m */; };
+		960F2BA5256965D300BF0249 /* Lndmobile.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 960F2BA4256965D300BF0249 /* Lndmobile.framework */; };
+		960F2BB625696D0C00BF0249 /* lnd.conf in Resources */ = {isa = PBXBuildFile; fileRef = 960F2BB525696D0C00BF0249 /* lnd.conf */; };
+		960F2C602569770A00BF0249 /* LndReactModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960F2C5F2569770A00BF0249 /* LndReactModule.swift */; };
 		B9C0FD2FAC3DED856A0EBE00 /* libPods-LightningTest-LightningTestTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 07B702DB535CAB7305D1BD8F /* libPods-LightningTest-LightningTestTests.a */; };
 		DD6224FB122247D9F095CEC1 /* libPods-LightningTest-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2A8AFA270D4AF628884FAEF /* libPods-LightningTest-tvOSTests.a */; };
 /* End PBXBuildFile section */
@@ -60,6 +64,11 @@
 		2D02E4901E0B4A5D006451C7 /* LightningTest-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "LightningTest-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D8C421EA2B66C7C978D2721 /* Pods-LightningTest-LightningTestTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LightningTest-LightningTestTests.release.xcconfig"; path = "Target Support Files/Pods-LightningTest-LightningTestTests/Pods-LightningTest-LightningTestTests.release.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = LightningTest/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		960F2B992569654700BF0249 /* LndReactModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LndReactModule.m; path = lightning/LndReactModule.m; sourceTree = "<group>"; };
+		960F2B9F2569654B00BF0249 /* LndReactModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LndReactModule.h; path = lightning/LndReactModule.h; sourceTree = "<group>"; };
+		960F2BA4256965D300BF0249 /* Lndmobile.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Lndmobile.framework; path = lightning/Lndmobile.framework; sourceTree = "<group>"; };
+		960F2BB525696D0C00BF0249 /* lnd.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = lnd.conf; path = lightning/lnd.conf; sourceTree = "<group>"; };
+		960F2C5F2569770A00BF0249 /* LndReactModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LndReactModule.swift; sourceTree = "<group>"; };
 		CEA117527B50D3259E22B456 /* Pods-LightningTest-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LightningTest-tvOS.release.xcconfig"; path = "Target Support Files/Pods-LightningTest-tvOS/Pods-LightningTest-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		D2A8AFA270D4AF628884FAEF /* libPods-LightningTest-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LightningTest-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9754560BB1CD84321D5568C /* Pods-LightningTest-LightningTestTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LightningTest-LightningTestTests.debug.xcconfig"; path = "Target Support Files/Pods-LightningTest-LightningTestTests/Pods-LightningTest-LightningTestTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -83,6 +92,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				30E64056268C435479026983 /* libPods-LightningTest.a in Frameworks */,
+				960F2BA5256965D300BF0249 /* Lndmobile.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,7 +135,12 @@
 		13B07FAE1A68108700A75B9A /* LightningTest */ = {
 			isa = PBXGroup;
 			children = (
+				960F2BA4256965D300BF0249 /* Lndmobile.framework */,
+				960F2BB525696D0C00BF0249 /* lnd.conf */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
+				960F2B9F2569654B00BF0249 /* LndReactModule.h */,
+				960F2B992569654700BF0249 /* LndReactModule.m */,
+				960F2C5F2569770A00BF0249 /* LndReactModule.swift */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -148,7 +163,6 @@
 				E26AD950CAE935B72F52A84C /* Pods-LightningTest-tvOSTests.debug.xcconfig */,
 				EFD6E88B2BD74A7CBB9875F5 /* Pods-LightningTest-tvOSTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -294,7 +308,7 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1220;
 					};
 					2D02E47A1E0B4A5D006451C7 = {
 						CreatedOnToolsVersion = 8.2.1;
@@ -342,6 +356,7 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				960F2BB625696D0C00BF0249 /* lnd.conf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -569,6 +584,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
+				960F2B9A2569654700BF0249 /* LndReactModule.m in Sources */,
+				960F2C602569770A00BF0249 /* LndReactModule.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -610,6 +627,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D9754560BB1CD84321D5568C /* Pods-LightningTest-LightningTestTests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -633,6 +651,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 2D8C421EA2B66C7C978D2721 /* Pods-LightningTest-LightningTestTests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = LightningTestTests/Info.plist;
@@ -657,6 +676,10 @@
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lightning",
+				);
 				INFOPLIST_FILE = LightningTest/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -666,6 +689,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = LightningTest;
+				SWIFT_OBJC_BRIDGING_HEADER = lightning/LndReactModule.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -679,6 +703,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lightning",
+				);
 				INFOPLIST_FILE = LightningTest/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -688,6 +716,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = LightningTest;
+				SWIFT_OBJC_BRIDGING_HEADER = lightning/LndReactModule.h;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
