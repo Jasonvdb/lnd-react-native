@@ -16,7 +16,7 @@ import {
   Button,
   StatusBar,
 } from 'react-native';
-import lnd from 'react-native-lightning';
+import lndFactory from 'react-native-lightning';
 
 const App: () => React$Node = () => {
   const [content, setContent] = useState('');
@@ -25,6 +25,8 @@ const App: () => React$Node = () => {
   const [seed, setSeed] = useState([]);
   const [isUnlocked, setIsUnlocked] = useState(false);
 
+  const lnd = lndFactory();
+
   useEffect(() => {
     (async () => {
       const res = await lnd.walletExists('testnet');
@@ -32,7 +34,9 @@ const App: () => React$Node = () => {
       if (res.error == false) {
         setWalletExists(res.data.exists);
       } else {
-        setContent(`Failed to generate seed: ${res.data}`);
+        setContent(
+          `Failed to check wallet exists: ${JSON.stringify(res.data)}`,
+        );
       }
     })();
   }, [lndStarted]);
@@ -85,7 +89,7 @@ const App: () => React$Node = () => {
               <Button
                 onPress={async () => {
                   setContent('Initializing...');
-                  const res = await lnd.initWallet(seed);
+                  const res = await lnd.createWallet(seed);
 
                   if (res.error == false) {
                     setIsUnlocked(true);
@@ -176,6 +180,21 @@ const App: () => React$Node = () => {
                   title="Show balance"
                   color="red"
                 />
+
+                {/*<Button*/}
+                {/*  onPress={async () => {*/}
+                {/*    setContent('Fetching status...');*/}
+                {/*    const res = await lnd.getStatus();*/}
+
+                {/*    if (res.error == false) {*/}
+                {/*      setContent(JSON.stringify(res.data));*/}
+                {/*    } else {*/}
+                {/*      setContent(`Failed to get status: ${res.data}`);*/}
+                {/*    }*/}
+                {/*  }}*/}
+                {/*  title="Show status"*/}
+                {/*  color="red"*/}
+                {/*/>*/}
               </Fragment>
             ) : null}
           </View>
