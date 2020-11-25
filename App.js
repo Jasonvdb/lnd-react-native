@@ -16,7 +16,7 @@ import {
   Button,
   StatusBar,
 } from 'react-native';
-import lndFactory from 'react-native-lightning';
+import lnd from 'react-native-lightning';
 
 const App: () => React$Node = () => {
   const [content, setContent] = useState('');
@@ -24,8 +24,6 @@ const App: () => React$Node = () => {
   const [lndStarted, setLndStarted] = useState(false);
   const [seed, setSeed] = useState([]);
   const [isUnlocked, setIsUnlocked] = useState(false);
-
-  const lnd = lndFactory();
 
   useEffect(() => {
     (async () => {
@@ -60,6 +58,7 @@ const App: () => React$Node = () => {
                     setContent('LND started');
                   } else {
                     setContent(`Failed to start LND: ${res.data}`);
+                    console.log(res.data);
                   }
                 }}
                 title="Start LND"

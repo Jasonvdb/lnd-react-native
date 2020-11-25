@@ -21,9 +21,9 @@
 		960F2B9A2569654700BF0249 /* LndReactModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 960F2B992569654700BF0249 /* LndReactModule.m */; };
 		960F2BA5256965D300BF0249 /* Lndmobile.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 960F2BA4256965D300BF0249 /* Lndmobile.framework */; };
 		960F2BB625696D0C00BF0249 /* lnd.conf in Resources */ = {isa = PBXBuildFile; fileRef = 960F2BB525696D0C00BF0249 /* lnd.conf */; };
-		960F2C602569770A00BF0249 /* LndReactModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960F2C5F2569770A00BF0249 /* LndReactModule.swift */; };
-		960F2D90256AC0FA00BF0249 /* rpc.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960F2D7B256AC0FA00BF0249 /* rpc.pb.swift */; };
-		960F2D98256AC0FA00BF0249 /* walletunlocker.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960F2D8A256AC0FA00BF0249 /* walletunlocker.pb.swift */; };
+		966AE5C2256D2924009E0F9D /* LndReactModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966AE5C1256D2924009E0F9D /* LndReactModule.swift */; };
+		966AE5CD256D3647009E0F9D /* walletunlocker.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966AE5CB256D3646009E0F9D /* walletunlocker.pb.swift */; };
+		966AE5CE256D3647009E0F9D /* rpc.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966AE5CC256D3647009E0F9D /* rpc.pb.swift */; };
 		B9C0FD2FAC3DED856A0EBE00 /* libPods-LightningTest-LightningTestTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 07B702DB535CAB7305D1BD8F /* libPods-LightningTest-LightningTestTests.a */; };
 		DD6224FB122247D9F095CEC1 /* libPods-LightningTest-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2A8AFA270D4AF628884FAEF /* libPods-LightningTest-tvOSTests.a */; };
 /* End PBXBuildFile section */
@@ -70,9 +70,9 @@
 		960F2B9F2569654B00BF0249 /* LndReactModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LndReactModule.h; path = lightning/LndReactModule.h; sourceTree = "<group>"; };
 		960F2BA4256965D300BF0249 /* Lndmobile.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Lndmobile.framework; path = lightning/Lndmobile.framework; sourceTree = "<group>"; };
 		960F2BB525696D0C00BF0249 /* lnd.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = lnd.conf; path = lightning/lnd.conf; sourceTree = "<group>"; };
-		960F2C5F2569770A00BF0249 /* LndReactModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LndReactModule.swift; sourceTree = "<group>"; };
-		960F2D7B256AC0FA00BF0249 /* rpc.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = rpc.pb.swift; sourceTree = "<group>"; };
-		960F2D8A256AC0FA00BF0249 /* walletunlocker.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = walletunlocker.pb.swift; sourceTree = "<group>"; };
+		966AE5C1256D2924009E0F9D /* LndReactModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = LndReactModule.swift; path = lightning/LndReactModule.swift; sourceTree = "<group>"; };
+		966AE5CB256D3646009E0F9D /* walletunlocker.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = walletunlocker.pb.swift; path = lightning/rpc/walletunlocker.pb.swift; sourceTree = SOURCE_ROOT; };
+		966AE5CC256D3647009E0F9D /* rpc.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = rpc.pb.swift; path = lightning/rpc/rpc.pb.swift; sourceTree = SOURCE_ROOT; };
 		CEA117527B50D3259E22B456 /* Pods-LightningTest-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LightningTest-tvOS.release.xcconfig"; path = "Target Support Files/Pods-LightningTest-tvOS/Pods-LightningTest-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		D2A8AFA270D4AF628884FAEF /* libPods-LightningTest-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LightningTest-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9754560BB1CD84321D5568C /* Pods-LightningTest-LightningTestTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LightningTest-LightningTestTests.debug.xcconfig"; path = "Target Support Files/Pods-LightningTest-LightningTestTests/Pods-LightningTest-LightningTestTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -144,7 +144,7 @@
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				960F2B9F2569654B00BF0249 /* LndReactModule.h */,
 				960F2B992569654700BF0249 /* LndReactModule.m */,
-				960F2C5F2569770A00BF0249 /* LndReactModule.swift */,
+				966AE5C1256D2924009E0F9D /* LndReactModule.swift */,
 				960F2D78256AC0FA00BF0249 /* rpc */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
@@ -220,8 +220,8 @@
 		960F2D78256AC0FA00BF0249 /* rpc */ = {
 			isa = PBXGroup;
 			children = (
-				960F2D7B256AC0FA00BF0249 /* rpc.pb.swift */,
-				960F2D8A256AC0FA00BF0249 /* walletunlocker.pb.swift */,
+				966AE5CC256D3647009E0F9D /* rpc.pb.swift */,
+				966AE5CB256D3646009E0F9D /* walletunlocker.pb.swift */,
 			);
 			path = rpc;
 			sourceTree = "<group>";
@@ -599,10 +599,10 @@
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				960F2B9A2569654700BF0249 /* LndReactModule.m in Sources */,
-				960F2D90256AC0FA00BF0249 /* rpc.pb.swift in Sources */,
-				960F2D98256AC0FA00BF0249 /* walletunlocker.pb.swift in Sources */,
-				960F2C602569770A00BF0249 /* LndReactModule.swift in Sources */,
+				966AE5CE256D3647009E0F9D /* rpc.pb.swift in Sources */,
+				966AE5C2256D2924009E0F9D /* LndReactModule.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				966AE5CD256D3647009E0F9D /* walletunlocker.pb.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

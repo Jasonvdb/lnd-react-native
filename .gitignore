@@ -5,3 +5,4 @@ android/.gradle/
 android/app/build/
 android/Lndmobile/build/
 android/java_pid*
+**.DS_Store
