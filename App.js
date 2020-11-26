@@ -180,20 +180,20 @@ const App: () => React$Node = () => {
                   color="red"
                 />
 
-                {/*<Button*/}
-                {/*  onPress={async () => {*/}
-                {/*    setContent('Fetching status...');*/}
-                {/*    const res = await lnd.getStatus();*/}
+                <Button
+                  onPress={async () => {
+                    setContent('Fetching state...');
+                    const res = await lnd.currentState();
 
-                {/*    if (res.error == false) {*/}
-                {/*      setContent(JSON.stringify(res.data));*/}
-                {/*    } else {*/}
-                {/*      setContent(`Failed to get status: ${res.data}`);*/}
-                {/*    }*/}
-                {/*  }}*/}
-                {/*  title="Show status"*/}
-                {/*  color="red"*/}
-                {/*/>*/}
+                    if (res.error == false) {
+                      setContent(JSON.stringify(res.data));
+                    } else {
+                      setContent(`Failed to get state: ${res.data}`);
+                    }
+                  }}
+                  title="Show status"
+                  color="green"
+                />
               </Fragment>
             ) : null}
           </View>

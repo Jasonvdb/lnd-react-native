@@ -1,6 +1,4 @@
 package com.lightningtest;
-
-import android.content.res.AssetManager;
 import android.os.FileObserver;
 import android.util.Base64;
 import android.util.Log;
@@ -16,14 +14,13 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -57,6 +54,8 @@ public class LndNativeModule extends ReactContextBaseJavaModule {
     private Map<String, Method> streamMethods = new HashMap<>();
 
     private FileObserver logObserver;
+
+    private LndState state = new LndState();
 
     private static boolean isReceiveStream(Method m) {
         return m.toString().contains("RecvStream");
@@ -98,9 +97,9 @@ public class LndNativeModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void start(final Promise promise) {
+    public void start(String configContent, final Promise promise) {
         File appDir = getReactApplicationContext().getFilesDir();
-        copyConfig(appDir);
+        writeToConfig(configContent, appDir);
 
         final String logDir = appDir + "/logs/bitcoin/testnet";
         final String logFile = logDir + "/lnd.log";
@@ -152,7 +151,7 @@ public class LndNativeModule extends ReactContextBaseJavaModule {
         final String args = "--lnddir=" + appDir;
         Log.i("LndNativeModule", "Starting LND with args " + args);
 
-        class UnlockCallback implements Callback {
+        class StartedCallback implements Callback {
             @Override
             public void onError(Exception e) {
                 Log.i(TAG, "Wallet unlock err: " + e.getMessage());
@@ -163,6 +162,7 @@ public class LndNativeModule extends ReactContextBaseJavaModule {
             public void onResponse(byte[] bytes) {
                 Log.i(TAG, "Wallet ready to be unlocked");
                 Log.d(TAG, "Wallet ready to be unlocked");
+                state.lndRunning = true;
                 promise.resolve("unlocked");
             }
         }
@@ -176,13 +176,14 @@ public class LndNativeModule extends ReactContextBaseJavaModule {
             public void onResponse(byte[] bytes) {
                 Log.i(TAG, "RPC ready for requests");
                 Log.d(TAG, "RPC ready for requests");
+                state.grpcReady = true;
             }
         }
 
         Runnable startLnd = new Runnable() {
             @Override
             public void run() {
-                Lndmobile.start(args, new UnlockCallback(), new RPCCallback());
+                Lndmobile.start(args, new StartedCallback(), new RPCCallback());
             }
         };
         new Thread(startLnd).start();
@@ -248,6 +249,7 @@ public class LndNativeModule extends ReactContextBaseJavaModule {
             public void onResponse(byte[] bytes) {
                 Log.i(TAG, "Wallet successfully initialized");
                 Log.d(TAG, "Wallet successfully initialized");
+                state.walletUnlocked = true;
                 promise.resolve("initialized");
             }
         }
@@ -296,6 +298,7 @@ public class LndNativeModule extends ReactContextBaseJavaModule {
             public void onResponse(byte[] bytes) {
                 Log.i(TAG, "Wallet successfully unlocked");
                 Log.d(TAG, "Wallet successfully unlocked");
+                state.walletUnlocked = true;
                 promise.resolve("unlocked");
             }
         }
@@ -323,6 +326,11 @@ public class LndNativeModule extends ReactContextBaseJavaModule {
         promise.resolve(exists);
     }
 
+    @ReactMethod
+    public void currentState(final Promise promise) {
+        promise.resolve(state.formatted());
+    }
+
     private void readToEnd(BufferedReader buf, boolean emit) throws IOException {
         String s = "";
         while ( (s = buf.readLine()) != null ) {
@@ -335,24 +343,16 @@ public class LndNativeModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private void copyConfig(File appDir) {
+    private void writeToConfig(String configContent, File appDir) {
         File conf = new File(appDir, "lnd.conf");
-        AssetManager am = getCurrentActivity().getAssets();
+        if (conf.exists()) {
+            conf.delete();
+        }
 
-        try (InputStream in = am.open("lnd.conf")) {
-            copy(in, conf);
+        try (BufferedWriter out = new BufferedWriter(new FileWriter(appDir.getPath() + "/lnd.conf"))) {
+            out.write(configContent);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private static void copy(InputStream in, File dst) throws IOException {
-        try (OutputStream out = new FileOutputStream(dst)) {
-            byte[] buf = new byte[1024];
-            int len;
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
         }
     }
 
@@ -470,6 +470,20 @@ public class LndNativeModule extends ReactContextBaseJavaModule {
             stream.send(b);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    class LndState {
+        Boolean lndRunning = false;
+        Boolean walletUnlocked = false;
+        Boolean grpcReady = false;
+
+        WritableMap formatted() {
+            WritableMap params = Arguments.createMap();
+            params.putBoolean("lndRunning", lndRunning);
+            params.putBoolean("walletUnlocked", walletUnlocked);
+            params.putBoolean("grpcReady", grpcReady);
+            return params;
         }
     }
 }
