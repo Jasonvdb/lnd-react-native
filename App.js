@@ -25,16 +25,27 @@ const App: () => React$Node = () => {
   const [seed, setSeed] = useState([]);
   const [isUnlocked, setIsUnlocked] = useState(false);
 
+  const dummyPassword = 'Shhhhhhhhhhh';
+
   useEffect(() => {
     (async () => {
       const res = await lnd.walletExists('testnet');
 
-      if (res.error == false) {
-        setWalletExists(res.data.exists);
+      if (res.isOk()) {
+        setWalletExists(res.value);
       } else {
-        setContent(
-          `Failed to check wallet exists: ${JSON.stringify(res.data)}`,
-        );
+        setContent(`${res.error}`);
+      }
+
+      const state = await lnd.currentState();
+      if (state.isOk()) {
+        const {lndRunning, walletUnlocked, grpcReady} = state.value;
+
+        console.log(state.value);
+        setLndStarted(lndRunning);
+        setIsUnlocked(walletUnlocked);
+      } else {
+        setContent(`${res.error}`);
       }
     })();
   }, [lndStarted]);
@@ -53,12 +64,14 @@ const App: () => React$Node = () => {
                   setContent('Starting...');
                   const res = await lnd.start();
 
-                  if (res.error == false) {
+                  console.log(res.isOk());
+                  console.log(res);
+
+                  if (res.isOk()) {
                     setLndStarted(true);
-                    setContent('LND started');
+                    setContent(res.value);
                   } else {
-                    setContent(`Failed to start LND: ${res.data}`);
-                    console.log(res.data);
+                    setContent(`${res.error}`);
                   }
                 }}
                 title="Start LND"
@@ -72,11 +85,11 @@ const App: () => React$Node = () => {
                   setContent('Generating seed...');
                   const res = await lnd.genSeed();
 
-                  if (res.error == false) {
-                    setSeed(res.data.seed);
-                    setContent(res.data.seed.join(' '));
+                  if (res.isOk()) {
+                    setSeed(res.value);
+                    setContent(res.value.join(' '));
                   } else {
-                    setContent(`Failed to generate seed: ${res.data}`);
+                    setContent(`${res.error}`);
                   }
                 }}
                 title="Seed me"
@@ -88,13 +101,13 @@ const App: () => React$Node = () => {
               <Button
                 onPress={async () => {
                   setContent('Initializing...');
-                  const res = await lnd.createWallet(seed);
+                  const res = await lnd.createWallet(dummyPassword, seed);
 
-                  if (res.error == false) {
+                  if (res.isOk()) {
                     setIsUnlocked(true);
-                    setContent('Wallet initialized.');
+                    setContent(res.value);
                   } else {
-                    setContent(`Failed to initialize: ${res.data}`);
+                    setContent(`${res.error}`);
                   }
                 }}
                 title={'Create wallet with seed'}
@@ -106,13 +119,13 @@ const App: () => React$Node = () => {
               <Button
                 onPress={async () => {
                   setContent('Unlocking...');
-                  const res = await lnd.unlockWallet();
+                  const res = await lnd.unlockWallet(dummyPassword);
 
-                  if (res.error == false) {
+                  if (res.isOk()) {
                     setIsUnlocked(true);
-                    setContent('Wallet unlocked.');
+                    setContent(res.value);
                   } else {
-                    setContent(`Failed to unlock: ${res.data}`);
+                    setContent(`${res.error}`);
                   }
                 }}
                 title={'Unlock existing wallet'}
@@ -126,8 +139,8 @@ const App: () => React$Node = () => {
                   onPress={async () => {
                     setContent('Fetching info...');
                     const res = await lnd.getInfo();
-
-                    if (res.error == false) {
+                    console.log(res);
+                    if (res.isOk()) {
                       const {
                         alias,
                         blockHash,
@@ -135,7 +148,7 @@ const App: () => React$Node = () => {
                         identityPubkey,
                         version,
                         ...rest
-                      } = res.data;
+                      } = res.value;
 
                       setContent(
                         `Version: ${version}\n\nPubkey: ${identityPubkey}\n\nAlias: ${alias}\n\nBlockHash: ${blockHash}\n\nChains: ${JSON.stringify(
@@ -143,7 +156,7 @@ const App: () => React$Node = () => {
                         )}`,
                       );
                     } else {
-                      setContent(`Failed to get info: ${res.data}`);
+                      setContent(`${res.error}`);
                     }
                   }}
                   title="Info"
@@ -155,10 +168,10 @@ const App: () => React$Node = () => {
                     setContent('Fetching address...');
                     const res = await lnd.getAddress();
 
-                    if (res.error == false) {
-                      setContent(res.data);
+                    if (res.isOk()) {
+                      setContent(JSON.stringify(res.value));
                     } else {
-                      setContent(`Failed to get address: ${res.data}`);
+                      setContent(`${res.error}`);
                     }
                   }}
                   title="Get address"
@@ -170,10 +183,17 @@ const App: () => React$Node = () => {
                     setContent('Fetching balance...');
                     const res = await lnd.getWalletBalance();
 
-                    if (res.error == false) {
-                      setContent(JSON.stringify(res.data));
+                    if (res.isOk()) {
+                      const {
+                        confirmedBalance,
+                        totalBalance,
+                        unconfirmedBalance,
+                      } = res.value;
+                      setContent(
+                        `confirmedBalance: ${confirmedBalance}\ntotalBalance: ${totalBalance}\nunconfirmedBalance: ${unconfirmedBalance}\n`,
+                      );
                     } else {
-                      setContent(`Failed to get balance: ${res.data}`);
+                      setContent(`${res.error}`);
                     }
                   }}
                   title="Show balance"
@@ -182,13 +202,31 @@ const App: () => React$Node = () => {
 
                 <Button
                   onPress={async () => {
+                    setContent('Fetching channel balance...');
+                    const res = await lnd.getChannelBalance();
+
+                    if (res.isOk()) {
+                      const {balance, pendingOpenBalance} = res.value;
+                      setContent(
+                        `balance: ${balance}\npendingOpenBalance: ${pendingOpenBalance}\n`,
+                      );
+                    } else {
+                      setContent(`${res.error}`);
+                    }
+                  }}
+                  title="Show channel balance"
+                  color="red"
+                />
+
+                <Button
+                  onPress={async () => {
                     setContent('Fetching state...');
                     const res = await lnd.currentState();
 
-                    if (res.error == false) {
-                      setContent(JSON.stringify(res.data));
+                    if (res.isOk()) {
+                      setContent(JSON.stringify(res.value));
                     } else {
-                      setContent(`Failed to get state: ${res.data}`);
+                      setContent(`${res.error}`);
                     }
                   }}
                   title="Show status"

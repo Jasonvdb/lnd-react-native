@@ -19,7 +19,7 @@
     "react-native": "0.63.3",
     "react-native-crypto": "^2.2.0",
     "react-native-keychain": "4.0.5",
-    "react-native-lightning": "git+https://github.com/Jasonvdb/react-native-lightning.git",
+    "react-native-lightning": "latest",
     "react-native-randombytes": "^3.6.0",
     "readable-stream": "^1.0.33",
     "stream-browserify": "^3.0.0",
