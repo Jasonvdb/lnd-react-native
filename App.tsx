@@ -6,17 +6,21 @@
  * @flow strict-local
  */
 
-import React, {useState, useEffect, Fragment} from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
 import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
   Button,
+  SafeAreaView,
+  ScrollView,
   StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import lnd from 'react-native-lightning';
+import LndConf from 'react-native-lightning/dist/lnd.conf';
+import {Networks} from 'react-native-lightning/dist/interfaces';
+
+const lndConf = new LndConf(Networks.regtest);
 
 const App: React.FC = () => {
   const [content, setContent] = useState<string>('');
@@ -24,30 +28,28 @@ const App: React.FC = () => {
     undefined,
   );
   const [lndStarted, setLndStarted] = useState<boolean>(false);
-  const [seed, setSeed] = useState<[string]>(['']);
+  const [seed, setSeed] = useState<string[]>([]);
   const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
 
   const dummyPassword = 'Shhhhhhhhhhh';
 
   useEffect(() => {
-    (async (): Promise<void> => {
-      const res = await lnd.walletExists('testnet');
+    (async () => {
+      const res = await lnd.walletExists(lndConf.network);
 
       if (res.isOk()) {
         setWalletExists(res.value);
       } else {
-        setContent(res.error.toString());
+        setContent(res.error.message);
       }
 
       const state = await lnd.currentState();
       if (state.isOk()) {
         const {lndRunning, walletUnlocked, grpcReady} = state.value;
-
-        console.log(state.value);
         setLndStarted(lndRunning);
         setIsUnlocked(walletUnlocked);
       } else {
-        setContent(state.error.toString());
+        setContent(state.error.message);
       }
     })();
   }, [lndStarted]);
@@ -60,20 +62,36 @@ const App: React.FC = () => {
           contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}>
           <View style={styles.buttons}>
+            <Button
+              onPress={async () => {
+                setContent('Fetching state...');
+                const res = await lnd.currentState();
+
+                if (res.isOk()) {
+                  const {grpcReady, lndRunning, walletUnlocked} = res.value;
+                  setContent(
+                    `grpcReady: ${grpcReady ? '✅' : '❌'}
+                        \nlndRunning: ${lndRunning ? '✅' : '❌'}
+                        \nwalletUnlocked: ${walletUnlocked ? '✅' : '❌'}\n`,
+                  );
+                } else {
+                  setContent(res.error.message);
+                }
+              }}
+              title="Show status"
+              color="green"
+            />
             {!lndStarted ? (
               <Button
                 onPress={async () => {
                   setContent('Starting...');
-                  const res = await lnd.start();
-
-                  console.log(res.isOk());
-                  console.log(res);
+                  const res = await lnd.start(lndConf);
 
                   if (res.isOk()) {
                     setLndStarted(true);
                     setContent(res.value);
                   } else if (res.isErr()) {
-                    setContent(res.error.toString());
+                    setContent(res.error.message);
                   }
                 }}
                 title="Start LND"
@@ -93,7 +111,7 @@ const App: React.FC = () => {
                     setSeed(res.value);
                     setContent(res.value.join(' '));
                   } else {
-                    setContent(res.error.toString());
+                    setContent(res.error.message);
                   }
                 }}
                 title="Seed me"
@@ -113,7 +131,7 @@ const App: React.FC = () => {
                     setIsUnlocked(true);
                     setContent(res.value);
                   } else {
-                    setContent(res.error.toString());
+                    setContent(res.error.message);
                   }
                 }}
                 title={'Create wallet with seed'}
@@ -133,7 +151,7 @@ const App: React.FC = () => {
                     setIsUnlocked(true);
                     setContent(res.value);
                   } else {
-                    setContent(res.error.toString());
+                    setContent(res.error.message);
                   }
                 }}
                 title={'Unlock existing wallet'}
@@ -149,7 +167,6 @@ const App: React.FC = () => {
                   onPress={async () => {
                     setContent('Fetching info...');
                     const res = await lnd.getInfo();
-                    console.log(res);
                     if (res.isOk()) {
                       const {
                         alias,
@@ -157,16 +174,16 @@ const App: React.FC = () => {
                         chains,
                         identityPubkey,
                         version,
-                        ...rest
+                        blockHeight,
                       } = res.value;
 
                       setContent(
-                        `Version: ${version}\n\nPubkey: ${identityPubkey}\n\nAlias: ${alias}\n\nBlockHash: ${blockHash}\n\nChains: ${JSON.stringify(
+                        `Version: ${version}\n\nPubkey: ${identityPubkey}\n\nAlias: ${alias}\n\nBlockHash: ${blockHash}\n\nblockHeight: ${blockHeight}\n\nChains: ${JSON.stringify(
                           chains,
                         )}`,
                       );
                     } else {
-                      setContent(res.error.toString());
+                      setContent(res.error.message);
                     }
                   }}
                   title="Info"
@@ -179,9 +196,10 @@ const App: React.FC = () => {
                     const res = await lnd.getAddress();
 
                     if (res.isOk()) {
-                      setContent(JSON.stringify(res.value));
+                      setContent(res.value.address);
+                      console.log(res.value.address);
                     } else {
-                      setContent(res.error.toString());
+                      setContent(res.error.message);
                     }
                   }}
                   title="Get address"
@@ -197,17 +215,17 @@ const App: React.FC = () => {
                       const {
                         confirmedBalance,
                         totalBalance,
-                        unconfirmedBalance
+                        unconfirmedBalance,
                       } = res.value;
                       setContent(
-                        `confirmedBalance: ${confirmedBalance}\ntotalBalance: ${totalBalance}\nunconfirmedBalance: ${unconfirmedBalance}\n`,
+                        `confirmedBalance: ${confirmedBalance.toString()}\ntotalBalance: ${totalBalance.toString()}\nunconfirmedBalance: ${unconfirmedBalance.toString()}\n`,
                       );
                     } else {
-                      setContent(res.error.toString());
+                      setContent(res.error.message);
                     }
                   }}
                   title="Show balance"
-                  color="red"
+                  color="purple"
                 />
 
                 <Button
@@ -218,29 +236,141 @@ const App: React.FC = () => {
                     if (res.isOk()) {
                       const {balance, pendingOpenBalance} = res.value;
                       setContent(
-                        `balance: ${balance}\npendingOpenBalance: ${pendingOpenBalance}\n`,
+                        `openChannelBalance: ${balance.toString()}\npendingOpenBalance: ${pendingOpenBalance.toString()}\n`,
                       );
                     } else {
-                      setContent(res.error.toString());
+                      setContent(res.error.message);
                     }
                   }}
                   title="Show channel balance"
-                  color="red"
+                  color="purple"
                 />
 
                 <Button
                   onPress={async () => {
-                    setContent('Fetching state...');
-                    const res = await lnd.currentState();
+                    setContent('Listing channels...');
+                    const res = await lnd.listChannels();
+
+                    if (res.isOk()) {
+                      if (res.value.channels.length === 0) {
+                        return setContent('No channels');
+                      }
+
+                      setContent(
+                        res.value.channels
+                          .map(
+                            (c) =>
+                              `${c.active ? '✅' : '❌'} Capacity:${
+                                c.capacity
+                              } Sent:${c.totalSatoshisSent} Updates:${
+                                c.numUpdates
+                              }`,
+                          )
+                          .join('\n\n'),
+                      );
+                    } else {
+                      setContent(res.error.message);
+                    }
+                  }}
+                  title="List channels"
+                  color="purple"
+                />
+
+                <Button
+                  onPress={async () => {
+                    setContent('Listing invoices...');
+                    const res = await lnd.listInvoices();
+
+                    if (res.isOk()) {
+                      if (res.value.invoices.length === 0) {
+                        return setContent('No Invoices');
+                      }
+
+                      setContent(
+                        res.value.invoices
+                          .map(
+                            (i) =>
+                              `${i.value} sats "${i.memo}" ${
+                                i.settled ? '✅' : '❌'
+                              }`,
+                          )
+                          .join('\n\n'),
+                      );
+                    } else {
+                      setContent(res.error.message);
+                    }
+                  }}
+                  title="List invoices"
+                  color="purple"
+                />
+
+                <Button
+                  onPress={async () => {
+                    setContent('Connecting...');
+                    const res = await lnd.connectPeer(
+                      '03d5524da52b1b632e766a1af7f917be0fffc905eb6cc0f4d8d1b40b72e26cb483',
+                      '127.0.0.1:9736',
+                    );
 
                     if (res.isOk()) {
                       setContent(JSON.stringify(res.value));
                     } else {
-                      setContent(res.error.toString());
+                      setContent(res.error.message);
                     }
                   }}
-                  title="Show status"
-                  color="green"
+                  title="Connect peer"
+                  color="purple"
+                />
+
+                <Button
+                  onPress={async () => {
+                    setContent('Opening channel...');
+                    const res = await lnd.openChannel(
+                      100000,
+                      '03d5524da52b1b632e766a1af7f917be0fffc905eb6cc0f4d8d1b40b72e26cb483',
+                    );
+
+                    if (res.isOk()) {
+                      setContent(JSON.stringify(res.value));
+                    } else {
+                      setContent(res.error.message);
+                    }
+                  }}
+                  title="Open channel"
+                  color="purple"
+                />
+
+                <Button
+                  onPress={async () => {
+                    setContent('Paying...');
+                    const res = await lnd.payInvoice(
+                      'lnbcrt210u1p0udrtspp57n80538c0fudaszy0njpxjxz34pgqd9nzm8nddujgvlqchqdvlesdqqcqzpgsp52hkf2kay8g95xkcrwpe6y8cgj2cp99cp3wlk560r2f23ks5a29sq9qy9qsq3650gf2mfpj7dzye9sjel8y98356y7t7krgpwjl7p6vxllcfcvvjdr92nvd53n0tr5cjelx8pzue5pyfq79wdq4p9vaaaugjuktglmqqr6p6h9',
+                    );
+
+                    if (res.isOk()) {
+                      setContent(JSON.stringify(res.value));
+                    } else {
+                      setContent(res.error.message);
+                    }
+                  }}
+                  title="Pay invoice"
+                  color="purple"
+                />
+
+                <Button
+                  onPress={async () => {
+                    setContent('Creating...');
+                    const res = await lnd.createInvoice(1234, 'Pay me bitch');
+
+                    if (res.isOk()) {
+                      console.log(res.value);
+                      setContent(JSON.stringify(res.value));
+                    } else {
+                      setContent(res.error.message);
+                    }
+                  }}
+                  title="Create invoice"
+                  color="purple"
                 />
               </Fragment>
             ) : (
@@ -257,6 +387,7 @@ const App: React.FC = () => {
 const styles = StyleSheet.create({
   scrollView: {
     backgroundColor: 'white',
+    // height: "80%"
   },
   buttons: {
     marginTop: 20,
@@ -266,7 +397,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   text: {
+    marginTop: 150,
     textAlign: 'center',
+    flex: 1,
   },
 });
 

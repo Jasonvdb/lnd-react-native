@@ -18,7 +18,7 @@
     "jest.config.js"
   ],
   "typeRoots": [
-    "./typings",
-    "./node_modules/@types/"
+    "./node_modules/@types/",
+    "./node_modules/react-native-lightning/dist/"
   ]
 }
