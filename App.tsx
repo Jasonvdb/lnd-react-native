@@ -18,23 +18,25 @@ import {
 } from 'react-native';
 import lnd from 'react-native-lightning';
 
-const App: () => React$Node = () => {
-  const [content, setContent] = useState('');
-  const [walletExists, setWalletExists] = useState(null);
-  const [lndStarted, setLndStarted] = useState(false);
-  const [seed, setSeed] = useState([]);
-  const [isUnlocked, setIsUnlocked] = useState(false);
+const App: React.FC = () => {
+  const [content, setContent] = useState<string>('');
+  const [walletExists, setWalletExists] = useState<boolean | undefined>(
+    undefined,
+  );
+  const [lndStarted, setLndStarted] = useState<boolean>(false);
+  const [seed, setSeed] = useState<[string]>(['']);
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
 
   const dummyPassword = 'Shhhhhhhhhhh';
 
   useEffect(() => {
-    (async () => {
+    (async (): Promise<void> => {
       const res = await lnd.walletExists('testnet');
 
       if (res.isOk()) {
         setWalletExists(res.value);
       } else {
-        setContent(`${res.error}`);
+        setContent(res.error.toString());
       }
 
       const state = await lnd.currentState();
@@ -45,7 +47,7 @@ const App: () => React$Node = () => {
         setLndStarted(lndRunning);
         setIsUnlocked(walletUnlocked);
       } else {
-        setContent(`${res.error}`);
+        setContent(state.error.toString());
       }
     })();
   }, [lndStarted]);
@@ -70,14 +72,16 @@ const App: () => React$Node = () => {
                   if (res.isOk()) {
                     setLndStarted(true);
                     setContent(res.value);
-                  } else {
-                    setContent(`${res.error}`);
+                  } else if (res.isErr()) {
+                    setContent(res.error.toString());
                   }
                 }}
                 title="Start LND"
                 color="gray"
               />
-            ) : null}
+            ) : (
+              <></>
+            )}
 
             {lndStarted && walletExists === false ? (
               <Button
@@ -89,13 +93,15 @@ const App: () => React$Node = () => {
                     setSeed(res.value);
                     setContent(res.value.join(' '));
                   } else {
-                    setContent(`${res.error}`);
+                    setContent(res.error.toString());
                   }
                 }}
                 title="Seed me"
                 color="green"
               />
-            ) : null}
+            ) : (
+              <></>
+            )}
 
             {!isUnlocked && seed.length > 0 ? (
               <Button
@@ -107,13 +113,15 @@ const App: () => React$Node = () => {
                     setIsUnlocked(true);
                     setContent(res.value);
                   } else {
-                    setContent(`${res.error}`);
+                    setContent(res.error.toString());
                   }
                 }}
                 title={'Create wallet with seed'}
                 color="purple"
               />
-            ) : null}
+            ) : (
+              <></>
+            )}
 
             {!isUnlocked && lndStarted && walletExists === true ? (
               <Button
@@ -125,13 +133,15 @@ const App: () => React$Node = () => {
                     setIsUnlocked(true);
                     setContent(res.value);
                   } else {
-                    setContent(`${res.error}`);
+                    setContent(res.error.toString());
                   }
                 }}
                 title={'Unlock existing wallet'}
                 color="purple"
               />
-            ) : null}
+            ) : (
+              <></>
+            )}
 
             {isUnlocked ? (
               <Fragment>
@@ -156,7 +166,7 @@ const App: () => React$Node = () => {
                         )}`,
                       );
                     } else {
-                      setContent(`${res.error}`);
+                      setContent(res.error.toString());
                     }
                   }}
                   title="Info"
@@ -171,7 +181,7 @@ const App: () => React$Node = () => {
                     if (res.isOk()) {
                       setContent(JSON.stringify(res.value));
                     } else {
-                      setContent(`${res.error}`);
+                      setContent(res.error.toString());
                     }
                   }}
                   title="Get address"
@@ -187,13 +197,13 @@ const App: () => React$Node = () => {
                       const {
                         confirmedBalance,
                         totalBalance,
-                        unconfirmedBalance,
+                        unconfirmedBalance
                       } = res.value;
                       setContent(
                         `confirmedBalance: ${confirmedBalance}\ntotalBalance: ${totalBalance}\nunconfirmedBalance: ${unconfirmedBalance}\n`,
                       );
                     } else {
-                      setContent(`${res.error}`);
+                      setContent(res.error.toString());
                     }
                   }}
                   title="Show balance"
@@ -211,7 +221,7 @@ const App: () => React$Node = () => {
                         `balance: ${balance}\npendingOpenBalance: ${pendingOpenBalance}\n`,
                       );
                     } else {
-                      setContent(`${res.error}`);
+                      setContent(res.error.toString());
                     }
                   }}
                   title="Show channel balance"
@@ -226,14 +236,16 @@ const App: () => React$Node = () => {
                     if (res.isOk()) {
                       setContent(JSON.stringify(res.value));
                     } else {
-                      setContent(`${res.error}`);
+                      setContent(res.error.toString());
                     }
                   }}
                   title="Show status"
                   color="green"
                 />
               </Fragment>
-            ) : null}
+            ) : (
+              <></>
+            )}
           </View>
           <Text style={styles.text}>{content}</Text>
         </ScrollView>
