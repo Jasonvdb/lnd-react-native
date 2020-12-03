@@ -56,8 +56,8 @@ const App: React.FC = () => {
 
   return (
     <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
+      <StatusBar barStyle="light-content" />
+      <SafeAreaView style={styles.safeArea}>
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}>
@@ -175,12 +175,15 @@ const App: React.FC = () => {
                         identityPubkey,
                         version,
                         blockHeight,
+                        syncedToChain,
+                        numActiveChannels,
+                        numPeers,
                       } = res.value;
 
                       setContent(
-                        `Version: ${version}\n\nPubkey: ${identityPubkey}\n\nAlias: ${alias}\n\nBlockHash: ${blockHash}\n\nblockHeight: ${blockHeight}\n\nChains: ${JSON.stringify(
-                          chains,
-                        )}`,
+                        `Version: ${version}\n\nPubkey: ${identityPubkey}\n\nAlias: ${alias}\n\nBlockHash: ${blockHash}\n\nblockHeight: ${blockHeight}\nnumActiveChannels: ${numActiveChannels}\nnumPeers: ${numPeers}\nsyncedToChain: ${
+                          syncedToChain ? '✅' : '❌'
+                        }\n\nChains: ${JSON.stringify(chains)}`,
                       );
                     } else {
                       setContent(res.error.message);
@@ -309,7 +312,7 @@ const App: React.FC = () => {
                     setContent('Connecting...');
                     const res = await lnd.connectPeer(
                       '03d5524da52b1b632e766a1af7f917be0fffc905eb6cc0f4d8d1b40b72e26cb483',
-                      '127.0.0.1:9736',
+                      '10.0.0.100:9736',
                     );
 
                     if (res.isOk()) {
@@ -326,7 +329,7 @@ const App: React.FC = () => {
                   onPress={async () => {
                     setContent('Opening channel...');
                     const res = await lnd.openChannel(
-                      100000,
+                      500000,
                       '03d5524da52b1b632e766a1af7f917be0fffc905eb6cc0f4d8d1b40b72e26cb483',
                     );
 
@@ -342,9 +345,46 @@ const App: React.FC = () => {
 
                 <Button
                   onPress={async () => {
+                    setContent('Closing 1st channel...');
+
+                    const channelsRes = await lnd.listChannels();
+                    if (channelsRes.isErr()) {
+                      return setContent(channelsRes.error.message);
+                    }
+                    if (channelsRes.value.channels.length === 0) {
+                      return setContent('No open channels.');
+                    }
+
+                    // Close first channel in the list
+                    const channelToClose = channelsRes.value.channels[0];
+
+                    let outLines = ``;
+                    lnd.closeChannelStream(
+                      channelToClose,
+                      (res) => {
+                        if (res.isErr()) {
+                          outLines = `${outLines}\nERROR: ${res.error}`;
+                        } else {
+                          outLines = `${outLines}\nChannels being closed: ${res.value.channels.length}`;
+                        }
+
+                        setContent(outLines);
+                      },
+                      () => {
+                        outLines = `${outLines}\nClosed.`;
+                        setContent(outLines);
+                      },
+                    );
+                  }}
+                  title="Close channel"
+                  color="purple"
+                />
+
+                <Button
+                  onPress={async () => {
                     setContent('Paying...');
                     const res = await lnd.payInvoice(
-                      'lnbcrt210u1p0udrtspp57n80538c0fudaszy0njpxjxz34pgqd9nzm8nddujgvlqchqdvlesdqqcqzpgsp52hkf2kay8g95xkcrwpe6y8cgj2cp99cp3wlk560r2f23ks5a29sq9qy9qsq3650gf2mfpj7dzye9sjel8y98356y7t7krgpwjl7p6vxllcfcvvjdr92nvd53n0tr5cjelx8pzue5pyfq79wdq4p9vaaaugjuktglmqqr6p6h9',
+                      'lnbcrt25u1p0uwjt5pp56s83a7p4jtvgquajghh4rhctamdgdz33js4j9h3hgdv8qd07gulqdqqcqzpgsp5adw62sddeurhujz2cmacm2m80yrqdh8t8c3yfxehyh63gjt8st6s9qy9qsqtnmdrp2jzgntr6vseqzyye6e9e0vqdshekrxnn2s89zumuw2ptrkyx2de3cpkp0qsaepdh9wkladzkkhutte56xk6a3sq7pf2dcrdgsqrp7xjp',
                     );
 
                     if (res.isOk()) {
@@ -377,6 +417,7 @@ const App: React.FC = () => {
               <></>
             )}
           </View>
+
           <Text style={styles.text}>{content}</Text>
         </ScrollView>
       </SafeAreaView>
@@ -385,21 +426,21 @@ const App: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: 'black',
+  },
   scrollView: {
-    backgroundColor: 'white',
-    // height: "80%"
+    height: '100%',
   },
   buttons: {
-    marginTop: 20,
-    height: 250,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'flex-start',
   },
   text: {
-    marginTop: 150,
+    marginTop: 20,
     textAlign: 'center',
-    flex: 1,
+    color: 'white',
   },
 });
 
