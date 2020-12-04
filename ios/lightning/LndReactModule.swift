@@ -32,13 +32,24 @@ enum LightningCallbackResponses: String {
   case walletUnlocked = "Wallet unlocked"
 }
 
+enum LightningResponseKeys: String {
+  case streamIdKey = "streamId"
+  case b64DataKey = "data"
+  case errorKey = "error"
+  case eventKey = "event"
+}
+
 struct LndState {
-  var lndRunning: Bool = false
-  var walletUnlocked: Bool = false
-  var grpcReady: Bool = false
+  var lndRunning: Bool = false { didSet { updateStateStream() }}
+  var walletUnlocked: Bool = false { didSet { updateStateStream() }}
+  var grpcReady: Bool = false { didSet { updateStateStream() }}
   
   func formatted() -> [String: Bool] {
     return ["lndRunning": lndRunning, "walletUnlocked": walletUnlocked, "grpcReady": grpcReady]
+  }
+  
+  func updateStateStream() {
+    LightningEventEmitter.shared.send(withEvent: .lndStateUpdate, body: formatted())
   }
 }
 
@@ -62,6 +73,8 @@ class LndReactModule: NSObject {
   private var confFile: URL {
       return storage.appendingPathComponent(confName)
   }
+    
+  private let activeStreams: [String: LndmobileSendStream] = [:]
   
   lazy var syncMethods: [String: (Data?, BlindLndCallback) -> Void] = {
     return [
@@ -118,22 +131,19 @@ class LndReactModule: NSObject {
   }()
   
   lazy var streamMethods: [String: (Data?, BlindLndCallback) -> Void] = {
-    return [:
-//        CloseChannel
-//        ChannelAcceptor
-//        SubscribeChannelBackups
-//        SubscribePeerEvents
-//        SubscribeChannelGraph
-//        SubscribeInvoices
-//        SubscribeTransactions
-//        SubscribeChannelEvents
-//        SendPayment
-//        SendToRoute
+    return [
+      "CloseChannel": { (req: Data?, cb: BlindLndCallback) in LndmobileCloseChannel(req, cb) },
+//      "ChannelAcceptor": { (req: Data?, cb: BlindLndCallback) in LndmobileChannelAcceptor(req, cb) },
+      "SubscribeChannelBackups": { (req: Data?, cb: BlindLndCallback) in LndmobileSubscribeChannelBackups(req, cb) },
+      "SubscribePeerEvents": { (req: Data?, cb: BlindLndCallback) in LndmobileSubscribePeerEvents(req, cb) },
+      "SubscribeChannelGraph": { (req: Data?, cb: BlindLndCallback) in LndmobileSubscribeChannelGraph(req, cb) },
+      "SubscribeInvoices": { (req: Data?, cb: BlindLndCallback) in LndmobileSubscribeInvoices(req, cb) },
+      "SubscribeTransactions": { (req: Data?, cb: BlindLndCallback) in LndmobileSubscribeTransactions(req, cb) },
+      "SubscribeChannelEvents": { (req: Data?, cb: BlindLndCallback) in LndmobileSubscribeChannelEvents(req, cb) },
+//      "SendPayment": { (req: Data?, cb: BlindLndCallback) in LndmobileSendPayment(req, cb) },
+//      "SendToRoute": { (req: Data?, cb: BlindLndCallback) in LndmobileSendToRoute(req, cb) }, TODO these probably need to be passed pointers to a LndmobileSendStream
     ]
   }()
-  
-  //      "CloseChannel": { (req: Data?, cb: BlindLndCallback) in LndmobileCloseChannel(req, cb) }, //TODO move to stream method
-
   
   @objc
   func walletExists(_ network: NSString, resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) {
@@ -255,15 +265,11 @@ class LndReactModule: NSObject {
   
     let onResponse: (Data?, Error?) -> Void = { (res, error) in
       if let e = error {
-        return reject("error", e.localizedDescription, e)
+        return reject(LightningResponseKeys.errorKey.rawValue, e.localizedDescription, e)
       }
       
       let resultData = res ?? Data() //For requests like balance, if the balance is zero the response can be empty
-      
-      
-      print("********CALLBACK")
-      
-      resolve(["data": resultData.base64EncodedString()])
+      resolve([LightningResponseKeys.b64DataKey.rawValue: resultData.base64EncodedString()])
     }
     
     let completion = BlindLndCallback(onResponse)
@@ -273,6 +279,50 @@ class LndReactModule: NSObject {
     }
     
     lndMethod(request, completion)
+  }
+  
+  @objc
+  func sendStreamCommand(_ method: NSString, streamId: NSString, body: NSString) {
+    let request = Data(base64Encoded: String(body))
+    
+    let onResponse: (Data?, Error?) -> Void = { (res, error) in
+      if let e = error {
+        LightningEventEmitter.shared.send(
+          withEvent: .streamEvent,
+          body: [
+            LightningResponseKeys.errorKey.rawValue: e.localizedDescription,
+            LightningResponseKeys.eventKey.rawValue: LightningResponseKeys.errorKey.rawValue,
+            LightningResponseKeys.streamIdKey.rawValue: streamId
+          ]
+        )
+        return
+      }
+      
+      let resultData = res ?? Data() //For some requests the response can be empty
+      
+      LightningEventEmitter.shared.send(
+        withEvent: .streamEvent,
+        body: [
+          LightningResponseKeys.b64DataKey.rawValue: resultData.base64EncodedString(),
+          LightningResponseKeys.eventKey.rawValue: LightningResponseKeys.b64DataKey.rawValue,
+          LightningResponseKeys.streamIdKey.rawValue: streamId
+        ]
+      )
+    }
+    
+    guard let lndMethod = streamMethods[method as String] else {
+      LightningEventEmitter.shared.send(
+        withEvent: .streamEvent,
+        body: [
+          LightningResponseKeys.errorKey.rawValue: LightningError.unknownMethod.localizedDescription,
+          LightningResponseKeys.eventKey.rawValue: LightningResponseKeys.errorKey.rawValue,
+          LightningResponseKeys.streamIdKey.rawValue: streamId
+        ]
+      )
+      return
+    }
+    
+    lndMethod(request, BlindLndCallback(onResponse))
   }
 }
 
@@ -401,6 +451,7 @@ class LightningEventEmitter: RCTEventEmitter {
   public enum EventTypes: String, CaseIterable {
     case logs = "logs"
     case streamEvent = "streamEvent"
+    case lndStateUpdate = "lndStateUpdate"
   }
 
   override init() {
@@ -408,7 +459,7 @@ class LightningEventEmitter: RCTEventEmitter {
     LightningEventEmitter.shared = self
   }
 
-  public func send(withEvent eventType: EventTypes, body: String) {
+  public func send(withEvent eventType: EventTypes, body: Any) {
     sendEvent(withName: eventType.rawValue, body: body)
   }
 

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "postinstall": "node postinstall.js",
+"postinstall": "node postinstall.js",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
@@ -11,19 +11,13 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "assert": "^1.5.0",
     "buffer": "^5.7.0",
-    "events": "^1.1.1",
-    "process": "^0.11.10",
     "react": "16.13.1",
     "react-native": "0.63.3",
     "react-native-crypto": "^2.2.0",
     "react-native-keychain": "4.0.5",
     "react-native-lightning": "latest",
-    "react-native-randombytes": "^3.6.0",
-    "readable-stream": "^1.0.33",
-    "stream-browserify": "^3.0.0",
-    "vm-browserify": "0.0.4"
+    "react-native-randombytes": "^3.6.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",
@@ -38,10 +32,7 @@
     "jest": "^26.6.1",
     "metro-react-native-babel-preset": "^0.63.0",
     "react-test-renderer": "16.13.1",
-    "rn-nodeify": "^10.2.0",
     "typescript": "^4.1.2",
-
-
     "@react-native-community/eslint-config": "2.0.0",
     "@types/react-native": "0.62.13",
     "@typescript-eslint/eslint-plugin": "3.3.0",
@@ -59,25 +50,5 @@
   },
   "jest": {
     "preset": "react-native"
-  },
-  "react-native": {
-    "crypto": "react-native-crypto",
-    "_stream_transform": "readable-stream/transform",
-    "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
-    "_stream_duplex": "readable-stream/duplex",
-    "_stream_passthrough": "readable-stream/passthrough",
-    "stream": "stream-browserify",
-    "vm": "vm-browserify"
-  },
-  "browser": {
-    "crypto": "react-native-crypto",
-    "_stream_transform": "readable-stream/transform",
-    "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
-    "_stream_duplex": "readable-stream/duplex",
-    "_stream_passthrough": "readable-stream/passthrough",
-    "stream": "stream-browserify",
-    "vm": "vm-browserify"
   }
 }

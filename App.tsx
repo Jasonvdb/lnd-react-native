@@ -18,11 +18,15 @@ import {
 } from 'react-native';
 import lnd from 'react-native-lightning';
 import LndConf from 'react-native-lightning/dist/lnd.conf';
-import {Networks} from 'react-native-lightning/dist/interfaces';
+import {
+  CurrentLndState,
+  Networks,
+} from 'react-native-lightning/dist/interfaces';
 
 const lndConf = new LndConf(Networks.regtest);
 
 const App: React.FC = () => {
+  const [stateContent, setStateContent] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [walletExists, setWalletExists] = useState<boolean | undefined>(
     undefined,
@@ -43,16 +47,34 @@ const App: React.FC = () => {
         setContent(res.error.message);
       }
 
-      const state = await lnd.currentState();
-      if (state.isOk()) {
-        const {lndRunning, walletUnlocked, grpcReady} = state.value;
+      const setState = (state: CurrentLndState): void => {
+        const {lndRunning, walletUnlocked, grpcReady} = state;
+
         setLndStarted(lndRunning);
         setIsUnlocked(walletUnlocked);
-      } else {
-        setContent(state.error.message);
+
+        setStateContent(`grpcReady: ${grpcReady ? '✅' : '❌'}
+                        \nlndRunning: ${lndRunning ? '✅' : '❌'}
+                        \nwalletUnlocked: ${walletUnlocked ? '✅' : '❌'}\n`);
+      };
+
+      if (stateContent === '') {
+        setState({lndRunning: false, walletUnlocked: false, grpcReady: false});
+        console.log('Subscribe!!!');
+        lnd.subscribeToCurrentState(setState);
       }
+
+      //
+      // const state = await lnd.currentState();
+      // if (state.isOk()) {
+      //   const {lndRunning, walletUnlocked, grpcReady} = state.value;
+      //   setLndStarted(lndRunning);
+      //   setIsUnlocked(walletUnlocked);
+      // } else {
+      //   setContent(state.error.message);
+      // }
     })();
-  }, [lndStarted]);
+  });
 
   return (
     <>
@@ -62,35 +84,12 @@ const App: React.FC = () => {
           contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}>
           <View style={styles.buttons}>
-            <Button
-              onPress={async () => {
-                setContent('Fetching state...');
-                const res = await lnd.currentState();
-
-                if (res.isOk()) {
-                  const {grpcReady, lndRunning, walletUnlocked} = res.value;
-                  setContent(
-                    `grpcReady: ${grpcReady ? '✅' : '❌'}
-                        \nlndRunning: ${lndRunning ? '✅' : '❌'}
-                        \nwalletUnlocked: ${walletUnlocked ? '✅' : '❌'}\n`,
-                  );
-                } else {
-                  setContent(res.error.message);
-                }
-              }}
-              title="Show status"
-              color="green"
-            />
             {!lndStarted ? (
               <Button
                 onPress={async () => {
-                  setContent('Starting...');
                   const res = await lnd.start(lndConf);
 
-                  if (res.isOk()) {
-                    setLndStarted(true);
-                    setContent(res.value);
-                  } else if (res.isErr()) {
+                  if (res.isErr()) {
                     setContent(res.error.message);
                   }
                 }}
@@ -128,7 +127,6 @@ const App: React.FC = () => {
                   const res = await lnd.createWallet(dummyPassword, seed);
 
                   if (res.isOk()) {
-                    setIsUnlocked(true);
                     setContent(res.value);
                   } else {
                     setContent(res.error.message);
@@ -148,8 +146,48 @@ const App: React.FC = () => {
                   const res = await lnd.unlockWallet(dummyPassword);
 
                   if (res.isOk()) {
-                    setIsUnlocked(true);
-                    setContent(res.value);
+                    setContent('');
+                    setTimeout(() => {
+                      lnd.subscribeToOnChainTransactions(
+                        (txRes) => {
+                          if (txRes.isErr()) {
+                            setContent(
+                              `TX stream error: ${txRes.error.message}`,
+                            );
+                            return;
+                          }
+
+                          alert(`On-chain tx: ${txRes.value.amount}`);
+                        },
+                        (doneRes) => {
+                          if (doneRes.isErr()) {
+                            setContent(
+                              `TX done streaming error: ${doneRes.error.message}`,
+                            );
+                          }
+                        },
+                      );
+
+                      lnd.subscribeToInvoices(
+                        (txRes) => {
+                          if (txRes.isErr()) {
+                            setContent(
+                              `Invoice stream error: ${txRes.error.message}`,
+                            );
+                            return;
+                          }
+
+                          alert(`Invoice update: ${txRes.value.value}`);
+                        },
+                        (doneRes) => {
+                          if (doneRes.isErr()) {
+                            setContent(
+                              `Invoices done streaming error: ${doneRes.error.message}`,
+                            );
+                          }
+                        },
+                      );
+                    }, 3000);
                   } else {
                     setContent(res.error.message);
                   }
@@ -384,7 +422,7 @@ const App: React.FC = () => {
                   onPress={async () => {
                     setContent('Paying...');
                     const res = await lnd.payInvoice(
-                      'lnbcrt25u1p0uwjt5pp56s83a7p4jtvgquajghh4rhctamdgdz33js4j9h3hgdv8qd07gulqdqqcqzpgsp5adw62sddeurhujz2cmacm2m80yrqdh8t8c3yfxehyh63gjt8st6s9qy9qsqtnmdrp2jzgntr6vseqzyye6e9e0vqdshekrxnn2s89zumuw2ptrkyx2de3cpkp0qsaepdh9wkladzkkhutte56xk6a3sq7pf2dcrdgsqrp7xjp',
+                      'lnbcrt12u1p0u5qpupp5w3s37rfmnqaad2le3qdyhpvlpdvggyd4fp0atqu4lt7mkucrvtcqdqqcqzpgsp5ujes0pmtkde8gjzw0lw7m6mekzkj44p4w78gfqar8xyqpc92uduq9qy9qsqety5l8e28fjkk699n09xyf4frxddpk56rkl3zw4v4qz4lflgf43pcf5plccztq7xywvcyhqgnmr4q4pyfquk8kg0hfxh75900056yfqpw5c89m',
                     );
 
                     if (res.isOk()) {
@@ -400,7 +438,7 @@ const App: React.FC = () => {
                 <Button
                   onPress={async () => {
                     setContent('Creating...');
-                    const res = await lnd.createInvoice(1234, 'Pay me bitch');
+                    const res = await lnd.createInvoice(10, 'Pay me pls');
 
                     if (res.isOk()) {
                       console.log(res.value);
@@ -418,6 +456,7 @@ const App: React.FC = () => {
             )}
           </View>
 
+          <Text style={styles.text}>{stateContent}</Text>
           <Text style={styles.text}>{content}</Text>
         </ScrollView>
       </SafeAreaView>
