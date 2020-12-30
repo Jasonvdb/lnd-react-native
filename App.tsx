@@ -349,8 +349,7 @@ const App: React.FC = () => {
                   onPress={async () => {
                     setContent('Connecting...');
                     const res = await lnd.connectPeer(
-                      '03d5524da52b1b632e766a1af7f917be0fffc905eb6cc0f4d8d1b40b72e26cb483',
-                      '10.0.0.100:9736',
+
                     );
 
                     if (res.isOk()) {
